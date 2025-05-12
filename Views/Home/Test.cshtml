@@ -1,0 +1,139 @@
+﻿@*@model BattachApp.Models.Test;*@
+@{
+}
+<form id="file_form" >
+    <input type="file" id="file_name"/>
+    <input type="text" id="name"/>
+    <input type="submit" value="Send"/> @*onclick="uploadImage()" />*@
+</form>
+<div id="progress">
+    <div id="progress_fill">
+        <span id="progress_percent"></span>
+    </div>
+</div>
+<div id="data"></div>
+<input type="checkbox" id="check" value="#008B8B" />
+<input type="submit" id="btn" value="Storage" />
+<input type="submit" id="del" value="Delete" />
+@*<img src="" id="data" style=" width: 200px; height: 200px;">*@
+
+@section Scripts{
+ <script>
+     var check = document.getElementById('check');
+     var btn = document.getElementById('btn');
+     var del = document.getElementById('del');
+     var fileForm = document.getElementById('file_form');
+
+     btn.addEventListener('click',()=>{
+         if(check.checked){
+            localStorage.setItem('color',check.value);
+         }
+         if (localStorage.getItem('color')) {
+            //document.getElementById('data').innerHTML = localStorage.getItem('color');
+              document.body.style.backgroundColor = localStorage.getItem('color');
+         }else{
+            document.getElementById('data').innerHTML = "<p style='color: red;'>I Didn't Find Any Local Storage Item On This Browser<p/>";
+         }
+     });
+   
+     del.addEventListener('click',()=>{
+         localStorage.removeItem('color');
+     });
+    //var progFill = document.getElementById('progress_fill');
+    //var progPercent = document.getElementById('progress_percent');
+   
+    
+    fileForm.addEventListener("submit", (event)=>{
+    //function uploadImage(){
+        event.preventDefault();
+        var fileName = document.getElementById('file_name');
+        if (fileName.value == "") {
+            console.log("The image doesn't exist")
+        }else{
+            var xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener("progress",(e)=>{
+               //if(e.lengthComputable){
+                   let percentComplete = ((e.loaded / e.total) * 100)
+                        document.getElementById('progress_fill').style.width = percentComplete +"%";
+                        document.getElementById('progress_percent').innerHTML = percentComplete.toFixed() + "%";
+               //}
+            });
+            
+            var formdata = new FormData();
+                var fileSize = document.getElementById('file_name').files;
+                var name = document.getElementById('name').value;
+                
+            for (var i = 0; i < fileSize.length; i++) {
+                formdata.append("file_name", fileSize[i]);
+            }
+                formdata.append("name", name);
+           
+            xhr.open("POST", "/Home/Test2");
+            //xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send(formdata);
+            xhr.onload = ()=>{
+                //document.getElementById('data').src = "/Uploaded_IMG/" + xhr.responseText;
+                document.getElementById('data').innerHTML = xhr.responseText;
+                console.log(xhr.responseText);
+            }
+                //document.getElementById('file_name').value = "";
+                //document.getElementById('name').value = "";
+                fileForm.reset();
+            }
+            //}
+    });
+
+
+
+       
+
+
+
+    //function uploadImage(){
+    //    var filename = $('#file_name').val();
+
+    //    if(filename == ""){
+
+    //        console.log("The image doesn't exist!!!")
+    //    }else{
+
+    //var fileSize = $('#file_name').get(0).files;
+    //var filedata = new FormData();
+    //for (var i = 0; i < fileSize.length; i++) {
+    //       filedata.append('file_name',fileSize[i]);
+    //     }
+    //$.ajax({
+    //    type: "POST",
+    //    url: "/Home/Test2",
+    //                xhr: () => {
+    //                    var xhr = new window.XMLHttpRequest();
+    //                    xhr.upload.addEventListener("progress", (event) => {
+    //                        //if (event.lengthComputable) {
+    //                        //console.log(event.loaded + " // " + event.total);
+    //                        console.log(event);
+    //                        //}
+    //                    }, false);
+                        
+    //                    xhr.addEventListener("progress", (event) => {
+    //                        //if (event.lengthComputable) {
+    //                            //console.log(event.loaded + " // " + event.total);
+    //                            console.log(event);
+    //                        //}
+    //                    }, false);
+    //                    return xhr;
+    //                },
+    //    dataType: "html",
+    //    contentType: false,
+    //    processData: false,
+    //    data: filedata,
+    //    success: (response)=>{
+    //           $('#progress_percent').html(response);
+    //    },
+    //    error: (xhr, status, error)=>{
+    //        console.log(error);
+    //    }
+    //});
+    //}
+    //}
+</script>
+}

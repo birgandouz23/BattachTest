@@ -1,0 +1,155 @@
+﻿@model IEnumerable<BattachApp.Models.Employees>;
+@{
+    ViewData["Title"] = "Employees";
+    int pg = 0;
+    int count = 0;
+    if (TempData["pg"] != null && TempData["count"] != null)
+    {
+        pg = Convert.ToInt32(TempData["pg"]);
+        count = Convert.ToInt32(TempData["count"]);
+    }
+}
+
+
+<h1>@ViewData["Title"]</h1>
+<!---Pagination--->
+
+<div>@TempData["count"]</div>
+<nav aria-label="...">
+    <ul class="pagination">
+        <li class='page-item @(pg <= 1 ? "disabled" : "")'>
+            <a class="page-link" href="Employees?pg=@(pg <= 1 ? 1 : pg - 1)">Previous</a>
+        </li>
+        @for (int i = 0; i < count ; i += 1)
+        {
+            <li class="page-item @(pg == i + 1 ? "active" : "")">
+                <a class="page-link" href="Employees?pg=@(i+1)">@(i + 1)</a>
+            </li>
+        }
+        <li class='page-item @(pg >= count ? "disabled" : "")'>
+            <a class="page-link" asp-route-pg="@(pg >= count ? count : pg + 1)">Next</a>
+        </li>
+    </ul>
+</nav>
+<div>@pg from @TempData["count"] Pages</div>
+
+    <table class="table table-sm table-dark">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">First name</th>
+                <th scope="col">Last name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Image</th>
+                <th scope="col">Rows Count</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (Employees item in Model)
+            {
+                <tr>
+                    <td>@item.id</td>
+                    <td>@item.fname</td>
+                    <td>@item.lname</td>
+                    <td>@item.email</td>
+                @if (item.image != string.Empty)
+                {
+                    <td><img style=" width: 100px;" src="~/Uploads/@item.image" /></td>
+                }
+                else
+                {
+                    <td></td>  
+                }
+                <td>@item.count</td>
+            </tr>
+            }
+
+        </tbody>
+    </table>
+    
+    <div>
+    <table class="table table-sm table-dark">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">First name</th>
+                <th scope="col">Last name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Image</th>
+            </tr>
+        </thead>
+        <tbody id="tbl">
+        
+        </tbody>
+        </table>
+    </div>
+
+    <button id="btn">Click</button>
+    <div style=" background-color:@(TempData["Session"].ToString() == "MySession" ? "red" : "green"); height:50px;">@TempData["Session"]</div>
+    <div style=" background-color:@(TempData["Cookie"].ToString() == "Battach" ? "green" : "red"); height:80px;">@TempData["Cookie"]</div>
+    <input type="file" id="myFile"/>
+
+    <!---------------AJAX-------------->
+    <script>
+    let file = document.getElementById('myFile');
+    document.getElementById('btn').onclick = fetchData;
+    function fetchData() {
+        let xhttp = new XMLHttpRequest();
+        xhttp.onload = ()=>{
+            let rsp = JSON.parse(xhttp.responseText);
+            for(let i = 0 ; i < rsp.length ; i++){
+            document.getElementById('tbl').innerHTML += rsp[i];
+            }
+        }
+        xhttp.open("GET", "/Home/Student?pg="+@pg, true);
+        xhttp.send();
+    }
+    fetchData();
+
+    </script>
+
+
+
+
+
+    <!---Form--->
+<!--<form method="GET">
+    <div class="from-group">
+        <label class="control-label">Number 1</label>
+        <input type="number" class="form-contol" name="num1" />
+    </div>
+    <div class="from-group">
+        <label class="control-label">Number 2</label>
+        <input type="number" class="form-contol" name="num2" />
+    </div>
+    <div class="from-group">
+        <input type="submit" value="Fetch" class="btn btn-primary" id="submit" />
+    </div>
+</form>
+<div class="from-group">
+    <a href="Employees?num1=0">Fetch</a>
+</div>-->
+
+<!--
+<form method="POST">    
+    <div class="from-group">
+        <label class="control-label">First Name</label>
+        <input class="form-contol" name="fname" />
+    </div>
+    <div class="from-group">
+        <label class="control-label">Last Name</label>
+        <input class="form-contol" name="lname" />
+    </div>
+    <div class="from-group">
+        <label class="control-label">Address</label>
+        <input class="form-contol" name="address" />
+    </div>
+    <div class="from-group">
+        <label class="control-label">Image</label>
+        <input type="file" class="form-contol" name="image" />
+    </div>
+    <div class="from-group">
+        <input type="submit" value="Add User" class="btn btn-primary" id="submit" />
+    </div>
+</form>
+-->

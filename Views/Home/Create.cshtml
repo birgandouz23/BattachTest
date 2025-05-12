@@ -1,0 +1,166 @@
+﻿@model BattachApp.Models.Employees;
+@{
+    ViewData["Title"] = "New Employee";
+    double lat = Convert.ToDouble(TempData["lat"]);
+    double lon =Convert.ToDouble(TempData["long"]);
+}
+@if(TempData["msg"] != null){
+    <div class="alert alert-success" role="alert">@TempData["msg"]</div>
+}
+
+<script src="https://www.paypal.com/sdk/js?client-id=AfbRXnSQKzl1z5Z0uQeSeP0PNw6rRHpaMFthljl8EvybRQOXsvaYV44iaQgmMlyZ1V8vuuWHtBwsXwQM&currency=USD"></script>
+@if(TempData["Connection"] != null){
+    <h1>@TempData["Connection"]</h1>
+}
+<form asp-controller="Home" asp-action="Create" method="POST" enctype="multipart/form-data">
+    <div class="form-group row">
+        <label for="fname" class="col-sm-2 col-form-label">First Name</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control mb-4" id="fname" placeholder="First Name" asp-for="fname">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="lname" class="col-sm-2 col-form-label">Last Name</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control mb-4" id="lname" placeholder="Last Name" asp-for="lname">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="email" class="col-sm-2 col-form-label">Email</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control mb-4" id="email" placeholder="Email" asp-for="email">
+        </div>
+    </div>
+    @* <div class="form-group row">
+        <label for="file" class="col-sm-2 col-form-label">Image</label>
+        <div class="col-sm-10">
+            <input type="file" class="form-control mb-4" id="file" asp-for="file" hidden>
+        </div>
+    </div>*@
+    <div id="show">
+        <img src="~/Images/1077596-200.png" id="img" />
+        <div>
+            <label for="file">+</label>
+            <input type="file" class="form-control mb-4" id="file" asp-for="file" hidden>
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-sm-10">
+            <button type="submit" class="btn btn-primary">Add Employee</button>
+        </div>
+    </div>
+</form>
+<a asp-controller="Home" asp-action="pdfSharp">Generate PDF</a>
+<div id="paypal-buttons"></div>
+<br />
+<a asp-controller="Home" asp-action="refundPayment">Refund The Payment</a>
+@if(TempData["imgUrl"] != null){
+    <img src="@TempData["imgUrl"]" style="width: 200px; height: 200px;"/>
+}
+@if (TempData["post"] != null)
+{
+    <p>@TempData["post"]</p>
+}
+@if (TempData["resp"] != null)
+{
+    <p>@TempData["resp"]</p>
+}
+@if (TempData["lat"] != null)
+{
+    <h1>@TempData["lat"]</h1>
+}
+@if (TempData["long"] != null)
+{
+    <h1>@TempData["long"]</h1>
+}
+@if (TempData["text"] != null)
+{
+    <h1>@TempData["text"]</h1>
+}
+@if (TempData["textcode"] != null)
+{
+    <h1>@TempData["textcode"]</h1>
+}
+<h1>@TempData["lat"]</h1>
+<div id="map"></div>
+<script>
+
+    /*leafLet map*/
+    var map = L.map('map').setView([51.505, -0.09], 13);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+  
+   navigator.geolocation.watchPosition(success, error);
+   function success(pos){
+       const lat = pos.coords.latitude;
+       const lon = pos.coords.longitude;
+       const accuracy = pos.coords.accuracy;
+         var marker = L.marker([30.347519, -9.548407]).addTo(map);
+             var circle = L.circle([30.347519, -9.548407], {
+        color: 'red',
+        fillColor: '#f03',
+        fillOpacity: 0.5,
+        radius: accuracy
+    }).addTo(map);
+   }
+   function error(error){
+       console.log(error);
+   }
+   
+   
+
+    /*PayPal Integration*/
+    paypal.Buttons({
+        async createOrder() {
+            const response = await fetch("/Home/createOrder", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                   amount : 100.00
+                })
+            });
+
+            const order = await response.json();
+
+            return order.id;
+        },
+        async onApprove(data) {
+        // Capture the funds from the transaction.
+        const response = await fetch("/Home/capturePayment", {
+          method: "POST",
+          headers: {
+                    "Content-Type": "application/json",
+                },
+          body: JSON.stringify({
+            orderId: data.orderID
+          })
+        })
+
+        //const details = await response.json();
+
+        // Show success message to buyer
+        //alert(`Transaction completed by ${details.payer.name.given_name}`);
+    },
+    }).render('#paypal-buttons');
+</script>
+
+
+
+
+<script>
+    let show = document.getElementById('show');
+    let img = document.getElementById('img');
+    let inpt = document.getElementById('file');
+    inpt.addEventListener("change",(e)=>{
+        let reader = new FileReader();
+        reader.onload = ()=>{
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    });
+</script>
